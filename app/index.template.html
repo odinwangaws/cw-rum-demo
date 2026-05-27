@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CloudWatch RUM — Live Demo</title>
+<script>
+window.__RUM_APP_MONITOR_ID__ = '{{APP_MONITOR_ID}}';
+window.__RUM_REGION__ = '{{REGION}}';
+window.__RUM_IDENTITY_POOL_ID__ = '{{IDENTITY_POOL_ID}}';
+</script>
+<script src="dist/rum-bundle.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; padding: 32px; color: #16191f; }
+h1 { color: #232f3e; margin-bottom: 4px; font-size: 28px; }
+.subtitle { color: #687078; margin-bottom: 24px; font-size: 13px; }
+.badges { margin-bottom: 28px; }
+.badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-right: 8px; }
+.badge.green { background: #037f0c; color: white; }
+.badge.purple { background: #8b5cf6; color: white; }
+
+.section { margin-bottom: 32px; }
+.section-title { font-size: 13px; font-weight: 600; color: #687078; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-left: 4px; }
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 1000px; }
+.card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e9ecef; }
+.card.full { grid-column: 1 / -1; }
+.card h2 { font-size: 15px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.card h2 .tag { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 500; }
+.tag.auto { background: #e3f2fd; color: #0972d3; }
+.tag.click { background: #fff3e0; color: #d35400; }
+.tag.replay { background: #f3e5f5; color: #8b5cf6; }
+.card p { color: #687078; font-size: 12px; margin-bottom: 10px; line-height: 1.5; }
+button { background: #0972d3; color: white; border: none; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-right: 5px; margin-bottom: 5px; transition: all 0.15s; font-weight: 500; }
+button:hover { background: #065aa8; transform: translateY(-1px); }
+button:active { transform: translateY(0); }
+button.error { background: #d91515; }
+button.error:hover { background: #b31212; }
+button.nav { background: #037f0c; }
+button.nav:hover { background: #026b0a; }
+button.replay { background: #8b5cf6; }
+button.replay:hover { background: #7c3aed; }
+.log { background: #1b2528; color: #7feba0; font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace; padding: 10px 12px; border-radius: 8px; max-height: 120px; overflow-y: auto; font-size: 11px; margin-top: 8px; }
+.log p { margin-bottom: 2px; opacity: 0; animation: fadeIn 0.2s forwards; }
+.log p .ts { color: #5a9e6f; }
+@keyframes fadeIn { to { opacity: 1; } }
+input[type="text"], input[type="email"] { border: 1px solid #d1d5db; border-radius: 6px; padding: 7px 11px; font-size: 12px; margin-right: 5px; margin-bottom: 5px; width: 160px; outline: none; transition: border-color 0.15s; }
+input[type="text"]:focus, input[type="email"]:focus { border-color: #0972d3; }
+.todo-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 12px; }
+.todo-item input[type="checkbox"] { width: 14px; height: 14px; accent-color: #0972d3; }
+.counter { font-size: 36px; font-weight: 700; color: #0972d3; text-align: center; padding: 12px; }
+.config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.config-block { background: #f8f9fa; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 11px; color: #495057; line-height: 1.7; }
+.config-block .label { color: #687078; font-size: 10px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; font-family: -apple-system, sans-serif; }
+.config-block span { color: #0972d3; }
+.how-it-works { font-size: 11px; color: #8c9196; margin-top: 6px; font-style: italic; }
+</style>
+</head>
+<body>
+<h1>CloudWatch RUM — Live Demo</h1>
+<p class="subtitle">App Monitor: <b>{{STACK_NAME}}</b> &nbsp;|&nbsp; Region: <b>{{REGION}}</b> &nbsp;|&nbsp; Sample Rate: 100%</p>
+<div class="badges">
+  <span class="badge green">RUM Active</span>
+  <span class="badge purple">Session Replay On</span>
+</div>
+
+<!-- Section 1: Auto-collected -->
+<div class="section">
+  <div class="section-title">Auto-Collected (no code needed)</div>
+  <div class="cards">
+    <div class="card">
+      <h2>Performance & Web Vitals <span class="tag auto">auto</span></h2>
+      <p>Page load timing and Core Web Vitals captured the moment the page loads. RUM hooks into the browser Performance API and PerformanceObserver.</p>
+      <div class="log" id="perf-log"><p>Collecting metrics...</p></div>
+      <p class="how-it-works">Console → Performance tab → Page load / Web Vitals charts</p>
+    </div>
+
+    <div class="card">
+      <h2>Session & User Context <span class="tag auto">auto</span></h2>
+      <p>Every event is enriched with session ID, browser, OS, device type, and geo location — no analytics SDK needed.</p>
+      <div class="log" id="session-log"></div>
+      <p class="how-it-works">Console → Overview → Users & Sessions cards</p>
+    </div>
+  </div>
+</div>
+
+<!-- Section 2: Click-triggered -->
+<div class="section">
+  <div class="section-title">Interactive Telemetry (click to trigger)</div>
+  <div class="cards">
+    <div class="card">
+      <h2>HTTP Request Monitoring <span class="tag click">click</span></h2>
+      <p>RUM monkey-patches fetch/XHR — every request is auto-captured with URL, status, and timing. No wrapping needed.</p>
+      <button onclick="makeRequest('https://jsonplaceholder.typicode.com/posts/1')">GET 200</button>
+      <button onclick="makeRequest('https://jsonplaceholder.typicode.com/posts/99999')">GET 404</button>
+      <button onclick="makeRequest('https://httpstat.us/500')">GET 500</button>
+      <div class="log" id="http-log"></div>
+      <p class="how-it-works">Console → HTTP requests tab (URL, status, duration breakdown)</p>
+    </div>
+
+    <div class="card">
+      <h2>JavaScript Error Capture <span class="tag click">click</span></h2>
+      <p>Global error handler catches unhandled exceptions with full stack trace, page context, and browser info.</p>
+      <button class="error" onclick="triggerError('type')">TypeError</button>
+      <button class="error" onclick="triggerError('ref')">ReferenceError</button>
+      <button class="error" onclick="triggerError('custom')">Custom Error</button>
+      <div class="log" id="error-log"></div>
+      <p class="how-it-works">Console → Errors tab (stack traces, error count chart)</p>
+    </div>
+
+    <div class="card full">
+      <h2>SPA Navigation & User Journey <span class="tag click">click</span></h2>
+      <p>RUM listens to history.pushState — every route change is a tracked page view. The User Journey tab visualizes paths across sessions.</p>
+      <button class="nav" onclick="navigate('/dashboard')">/dashboard</button>
+      <button class="nav" onclick="navigate('/settings')">/settings</button>
+      <button class="nav" onclick="navigate('/checkout')">/checkout</button>
+      <button class="nav" onclick="navigate('/')">/ (home)</button>
+      <div class="log" id="nav-log"></div>
+      <p class="how-it-works">Console → Page views tab + User Journey tab (paths auto-seeded by setup.sh; add more by opening in multiple incognito windows)</p>
+    </div>
+  </div>
+</div>
+
+<!-- Section 3: Session Replay -->
+<div class="section">
+  <div class="section-title">Session Replay (recording now)</div>
+  <div class="cards">
+    <div class="card">
+      <h2>Form Interactions <span class="tag replay">replay</span></h2>
+      <p>Type and submit — rrweb captures every keystroke and DOM change. All text is privacy-masked before leaving the browser.</p>
+      <input type="text" id="name-input" placeholder="Your name" data-rum-mask>
+      <input type="email" id="email-input" placeholder="Email" data-rum-mask>
+      <button class="replay" onclick="submitForm()">Submit</button>
+      <div class="log" id="form-log"></div>
+    </div>
+
+    <div class="card">
+      <h2>DOM Mutations <span class="tag replay">replay</span></h2>
+      <p>Only incremental diffs are sent — not screenshots. Lightweight even on complex UIs.</p>
+      <div class="counter" id="counter">0</div>
+      <button class="replay" onclick="changeCounter(1)">+1</button>
+      <button class="replay" onclick="changeCounter(-1)">-1</button>
+      <button class="replay" onclick="changeCounter(0)">Reset</button>
+    </div>
+
+    <div class="card full">
+      <h2>Complex DOM Changes <span class="tag replay">replay</span></h2>
+      <p>Add/remove elements — the replay player shows exactly what the user saw, frame by frame.</p>
+      <input type="text" id="todo-input" placeholder="Add a task...">
+      <button class="replay" onclick="addTodo()">Add</button>
+      <button class="replay" onclick="clearTodos()">Clear All</button>
+      <div id="todo-list" style="margin-top: 8px;"></div>
+      <p class="how-it-works">Console → Session replay tab → Pick a session → Playback player (1x/2x/4x/8x)</p>
+    </div>
+  </div>
+</div>
+
+<!-- View Results -->
+<div class="section">
+  <div class="section-title">View Results in CloudWatch</div>
+  <div class="cards">
+    <div class="card full" style="text-align:center; padding: 28px;">
+      <p style="font-size:14px; color:#16191f; margin-bottom:14px;">Done clicking? Open the CloudWatch RUM console to see all captured telemetry.</p>
+      <a href="https://{{REGION}}.console.aws.amazon.com/cloudwatch/home?region={{REGION}}#rum:dashboard/{{STACK_NAME}}" target="_blank" style="display:inline-block; background:#ff9900; color:#16191f; font-weight:600; padding:12px 28px; border-radius:8px; font-size:14px; text-decoration:none; transition:all 0.15s;">Open CloudWatch RUM Console →</a>
+      <p style="font-size:11px; color:#8c9196; margin-top:12px;">Data takes 1–2 minutes to appear after first page load. Check tabs: Performance · Errors · HTTP requests · Page views · Session replay</p>
+    </div>
+  </div>
+</div>
+
+<!-- Configuration -->
+<div class="section">
+  <div class="section-title">Configuration Reference</div>
+  <div class="cards">
+    <div class="card full">
+      <div class="config-grid">
+        <div class="config-block">
+          <div class="label">Standard Telemetry (CDN or NPM)</div>
+          App Monitor: <span>{{APP_MONITOR_ID}}</span><br>
+          Identity Pool: <span>{{IDENTITY_POOL_ID}}</span><br>
+          Telemetries: <span>performance, errors, http</span><br>
+          Client: <span>aws-rum-web 3.0.0</span>
+        </div>
+        <div class="config-block">
+          <div class="label">Session Replay (NPM only)</div>
+          Plugin: <span>RRWebPlugin</span><br>
+          Privacy: <span>maskAllInputs + maskTextSelector='*' (enforced)</span><br>
+          Batch: <span>50 events / 5s flush</span><br>
+          Bundle: <span>~275KB minified (includes rrweb)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function log(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const p = document.createElement('p');
+  const ts = new Date().toLocaleTimeString();
+  p.innerHTML = `<span class="ts">[${ts}]</span> ${msg}`;
+  el.appendChild(p);
+  el.scrollTop = el.scrollHeight;
+}
+
+// === Performance (auto) ===
+window.addEventListener('load', () => {
+  const el = document.getElementById('perf-log');
+  el.innerHTML = '';
+  const nav = performance.getEntriesByType('navigation')[0];
+  if (nav) {
+    log('perf-log', `DNS: ${Math.round(nav.domainLookupEnd - nav.domainLookupStart)}ms`);
+    log('perf-log', `TCP: ${Math.round(nav.connectEnd - nav.connectStart)}ms`);
+    log('perf-log', `TTFB: ${Math.round(nav.responseStart - nav.requestStart)}ms`);
+    log('perf-log', `DOM Interactive: ${Math.round(nav.domInteractive)}ms`);
+    log('perf-log', `Load: ${Math.round(nav.loadEventEnd)}ms`);
+  }
+  new PerformanceObserver((list) => {
+    for (const entry of list.getEntries())
+      log('perf-log', `LCP: ${Math.round(entry.startTime)}ms`);
+  }).observe({ type: 'largest-contentful-paint', buffered: true });
+  new PerformanceObserver((list) => {
+    for (const entry of list.getEntries())
+      log('perf-log', `CLS: ${entry.value.toFixed(4)}`);
+  }).observe({ type: 'layout-shift', buffered: true });
+});
+
+// === Session context (auto) ===
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    log('session-log', `Session ID: ${document.cookie.match(/cwr_s=([^;]+)/)?.[1]?.substring(0,12) || '(generating)'}...`);
+    log('session-log', `User Agent: ${navigator.userAgent.match(/(Chrome|Firefox|Safari)\/[\d.]+/)?.[0] || navigator.userAgent.substring(0,40)}`);
+    log('session-log', `Platform: ${navigator.platform}`);
+    log('session-log', `Page: ${location.pathname}`);
+    log('session-log', `Replay: ${window.__replayActive ? 'Recording' : 'Off'}`);
+  }, 500);
+});
+
+// === HTTP requests ===
+async function makeRequest(url) {
+  const label = url.includes('typicode') ? url.split('/').pop() : new URL(url).pathname;
+  log('http-log', `→ GET ${label}`);
+  const t0 = performance.now();
+  try {
+    const res = await fetch(url);
+    log('http-log', `← ${res.status} ${res.statusText} (${Math.round(performance.now()-t0)}ms)`);
+  } catch (e) {
+    log('http-log', `✗ ${e.message}`);
+  }
+}
+
+// === JS Errors ===
+function triggerError(type) {
+  if (type === 'type') {
+    log('error-log', 'Throwing TypeError → null.property');
+    setTimeout(() => { null.property; }, 10);
+  } else if (type === 'ref') {
+    log('error-log', 'Throwing ReferenceError → undefinedVar.method()');
+    setTimeout(() => { undefinedVariable.method(); }, 10);
+  } else {
+    log('error-log', 'Throwing Custom Error → PaymentService failure');
+    setTimeout(() => { throw new Error('PaymentService: Card declined for order #12345'); }, 10);
+  }
+}
+
+// === SPA Navigation & User Journey ===
+function navigate(path) {
+  history.pushState({}, '', path);
+  log('nav-log', `→ ${path}`);
+  if (window.__awsRum) window.__awsRum.recordPageView(path);
+}
+
+
+// === Form (replay) ===
+function submitForm() {
+  const name = document.getElementById('name-input').value || '(empty)';
+  const email = document.getElementById('email-input').value || '(empty)';
+  log('form-log', `Submitted: "${name}" / "${email}"`);
+  document.getElementById('name-input').value = '';
+  document.getElementById('email-input').value = '';
+}
+
+// === Counter (replay) ===
+let count = 0;
+function changeCounter(delta) {
+  if (delta === 0) count = 0;
+  else count += delta;
+  document.getElementById('counter').textContent = count;
+}
+
+// === Todo list (replay) ===
+let todoId = 0;
+function addTodo() {
+  const input = document.getElementById('todo-input');
+  const text = input.value.trim();
+  if (!text) return;
+  todoId++;
+  const list = document.getElementById('todo-list');
+  const item = document.createElement('div');
+  item.className = 'todo-item';
+  item.id = `todo-${todoId}`;
+  const curId = todoId;
+  item.innerHTML = `<input type="checkbox" onchange="toggleTodo(this)"><span>${text}</span><button onclick="removeTodo('todo-${curId}')" style="background:#d91515;color:white;border:none;padding:3px 8px;border-radius:4px;font-size:11px;cursor:pointer;">✕</button>`;
+  list.appendChild(item);
+  input.value = '';
+}
+function removeTodo(id) { document.getElementById(id)?.remove(); }
+function toggleTodo(cb) { cb.parentElement.querySelector('span').style.textDecoration = cb.checked ? 'line-through' : 'none'; }
+function clearTodos() { document.getElementById('todo-list').innerHTML = ''; }
+</script>
+</body>
+</html>
