@@ -1,0 +1,14 @@
+{
+  "name": "cw-rum-replay",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/rum-init.js --bundle --format=iife --target=es2020 --outfile=dist/rum-bundle.js --minify"
+  },
+  "dependencies": {
+    "aws-rum-web": "^3.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0"
+  }
+}
