@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudWatch RUM Demo - Creates App Monitor, Cognito Identity Pool, and IAM Role
+
+Parameters:
+  AppName:
+    Type: String
+    Default: cw-rum-demo
+    Description: Name for the RUM App Monitor
+  Domain:
+    Type: String
+    Default: localhost
+    Description: Domain where the app is hosted (use localhost for local dev)
+
+Resources:
+  RumUnauthRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AppName}-unauth-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                cognito-identity.amazonaws.com:aud: !Ref IdentityPool
+              ForAnyValue:StringLike:
+                cognito-identity.amazonaws.com:amr: unauthenticated
+      Policies:
+        - PolicyName: rum-put-events
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: rum:PutRumEvents
+                Resource: !Sub 'arn:aws:rum:${AWS::Region}:${AWS::AccountId}:appmonitor/${AppName}'
+
+  IdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: !Sub '${AppName}-pool'
+      AllowUnauthenticatedIdentities: true
+
+  IdentityPoolRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref IdentityPool
+      Roles:
+        unauthenticated: !GetAtt RumUnauthRole.Arn
+
+  RumAppMonitor:
+    Type: AWS::RUM::AppMonitor
+    DependsOn: IdentityPoolRoleAttachment
+    Properties:
+      Name: !Ref AppName
+      Domain: !Ref Domain
+      AppMonitorConfiguration:
+        AllowCookies: true
+        EnableXRay: false
+        SessionSampleRate: 1.0
+        IdentityPoolId: !Ref IdentityPool
+        GuestRoleArn: !GetAtt RumUnauthRole.Arn
+        Telemetries:
+          - errors
+          - performance
+          - http
+
+Outputs:
+  AppMonitorId:
+    Description: RUM App Monitor ID
+    Value: !GetAtt RumAppMonitor.Id
+  IdentityPoolId:
+    Description: Cognito Identity Pool ID (needed for the JS snippet)
+    Value: !Ref IdentityPool
+  Region:
+    Description: Deployment region
+    Value: !Ref AWS::Region
+  ConsoleUrl:
+    Description: CloudWatch RUM Console Dashboard URL
+    Value: !Sub 'https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#rum:dashboard/${AppName}'
